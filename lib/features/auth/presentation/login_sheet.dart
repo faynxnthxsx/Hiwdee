@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../data/auth_repository.dart';
+import '../domain/social_provider.dart';
 import 'auth_controller.dart';
 
 /// แผ่นล็อกอินแบบเด้งขึ้นมา — ใช้ตอนผู้ใช้ที่ยังไม่ล็อกอินกดปุ่มที่ต้องยืนยันตัวตน
@@ -104,6 +105,27 @@ class _LoginSheetState extends ConsumerState<LoginSheet> {
             style: const TextStyle(color: AppColors.inkMuted, fontSize: 14),
           ),
           const SizedBox(height: 20),
+          if (_step == _Step.phone) ...[
+            ..._socialButtons(auth.isBusy),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                const Expanded(child: Divider(color: AppColors.line)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    'หรือใช้เบอร์มือถือ',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.inkMuted,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider(color: AppColors.line)),
+              ],
+            ),
+            const SizedBox(height: 14),
+          ],
           ..._buildStepFields(),
           if (auth.error != null) ...[
             const SizedBox(height: 12),
@@ -158,6 +180,49 @@ class _LoginSheetState extends ConsumerState<LoginSheet> {
         ],
       ),
     );
+  }
+
+  /// ปุ่มล็อกอินโซเชียล — วางไว้บนสุดเพราะกดปุ่มเดียวจบ
+  /// เร็วกว่ารอ SMS และไม่มีค่าใช้จ่ายต่อครั้งเหมือน OTP
+  List<Widget> _socialButtons(bool busy) {
+    return [
+      for (final provider in SocialProvider.values)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: OutlinedButton.icon(
+            onPressed: busy ? null : () => _signInWith(provider),
+            icon: Icon(
+              switch (provider) {
+                SocialProvider.google => Icons.g_mobiledata,
+                SocialProvider.facebook => Icons.facebook,
+              },
+              size: 24,
+              color: switch (provider) {
+                SocialProvider.google => const Color(0xFFDB4437),
+                SocialProvider.facebook => const Color(0xFF1877F2),
+              },
+            ),
+            label: Text('ดำเนินการต่อด้วย ${provider.text}'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 50),
+              foregroundColor: AppColors.ink,
+              side: const BorderSide(color: AppColors.line),
+            ),
+          ),
+        ),
+    ];
+  }
+
+  Future<void> _signInWith(SocialProvider provider) async {
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .signInWith(provider);
+
+    // สำเร็จแบบไม่ redirect (ตัวปลอม) → ปิด sheet ให้เลย
+    // ส่วนของจริงบนเว็บจะพาออกไปหน้าผู้ให้บริการ โค้ดตรงนี้ไม่ได้ทำงานต่อ
+    if (ok && mounted && ref.read(isLoggedInProvider)) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   List<Widget> _buildStepFields() {

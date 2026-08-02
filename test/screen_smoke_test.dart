@@ -16,6 +16,8 @@ import 'package:hiewdee/features/request/presentation/feed_screen.dart';
 import 'package:hiewdee/features/request/presentation/request_detail_screen.dart';
 import 'package:hiewdee/features/trip/presentation/trip_feed_screen.dart';
 
+import 'support/fake_auth_repository.dart';
+
 /// เทสต์ "เปิดหน้าแล้วไม่พัง"
 ///
 /// มีเพราะเคยพลาดมาแล้วจริงๆ — `ProfileScreen` ใส่ margin ติดลบไว้ ซึ่ง
@@ -24,43 +26,26 @@ import 'package:hiewdee/features/trip/presentation/trip_feed_screen.dart';
 ///
 /// เทสต์กลุ่มนี้ไม่ตรวจว่าหน้าตาถูกไหม แค่ยืนยันว่า build ผ่านโดยไม่มี
 /// exception ซึ่งดักบั๊กประเภทนี้ได้ทั้งชุดด้วยโค้ดไม่กี่บรรทัด
-class _InstantAuth implements AuthRepository {
-  @override
-  Future<void> requestOtp(String phone) async {}
-
-  @override
-  Future<AppUser> verifyOtp({
-    required String phone,
-    required String otp,
-  }) async =>
-      AppUser(
-        id: 'u_test',
-        displayName: 'ฝ้าย',
-        phone: phone,
-        isCarrier: true,
-        isVerified: true,
-        rating: 4.9,
-        reviewCount: 128,
-        walletBalance: 2500,
-      );
-
-  @override
-  Future<AppUser> registerWithPhone({
-    required String phone,
-    required String displayName,
-  }) async =>
-      AppUser(id: 'u_test', displayName: displayName, phone: phone);
-
-  @override
-  Future<void> signOut() async {}
-}
+const _demoUser = AppUser(
+  id: 'u_test',
+  displayName: 'ฝ้าย',
+  phone: '0812345678',
+  isCarrier: true,
+  isVerified: true,
+  rating: 4.9,
+  reviewCount: 128,
+  walletBalance: 2500,
+);
 
 void main() {
   late ProviderContainer container;
 
   setUp(() {
     container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(_InstantAuth())],
+      overrides: [
+        authRepositoryProvider
+            .overrideWithValue(FakeAuthRepository(user: _demoUser)),
+      ],
     );
   });
   tearDown(() => container.dispose());

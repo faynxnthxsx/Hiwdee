@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/storage/local_store.dart';
 import '../data/auth_repository.dart';
 import '../domain/app_user.dart';
+import '../domain/social_provider.dart';
 
 class AuthState {
   const AuthState({this.user, this.isBusy = false, this.error});
@@ -30,8 +31,22 @@ class AuthState {
 
 class AuthController extends Notifier<AuthState> {
   /// กู้เซสชันเดิมกลับมา — รีเฟรชหน้าเว็บแล้วไม่หลุดล็อกอิน
+  ///
+  /// ลำดับความน่าเชื่อถือ: เซสชันจริงจาก Supabase มาก่อนค่าที่เซฟไว้ในเครื่อง
+  /// เพราะฝั่งเซิร์ฟเวอร์อาจเพิกถอนเซสชันไปแล้วโดยที่เครื่องยังไม่รู้
   @override
   AuthState build() {
+    // OAuth บนเว็บ redirect กลับมาแล้วโหลดหน้าใหม่ทั้งหน้า
+    // ผลการล็อกอินจึงมาทาง stream ไม่ใช่ค่าคืนจากปุ่มที่กด
+    final sub = _repo.authChanges().listen((user) {
+      state = user == null ? const AuthState() : AuthState(user: user);
+      _persist(user);
+    });
+    ref.onDispose(sub.cancel);
+
+    final live = _repo.currentUser;
+    if (live != null) return AuthState(user: live);
+
     final saved = _store?.readMap(StoreKeys.user);
     if (saved == null) return const AuthState();
     return AuthState(user: AppUser.fromJson(saved));
@@ -47,6 +62,31 @@ class AuthController extends Notifier<AuthState> {
       store.remove(StoreKeys.user);
     } else {
       store.write(StoreKeys.user, user.toJson());
+    }
+  }
+
+  /// ล็อกอินด้วย Google หรือ Facebook
+  ///
+  /// บนเว็บจะ redirect ออกไป โค้ดหลังบรรทัดนี้อาจไม่ได้ทำงานเลย
+  /// ผลลัพธ์จริงมาทาง stream ที่ subscribe ไว้ใน [build]
+  Future<bool> signInWith(SocialProvider provider) async {
+    state = state.copyWith(isBusy: true, clearError: true);
+    try {
+      await _repo.signInWith(provider);
+
+      // ตัวปลอมล็อกอินเสร็จทันทีโดยไม่ redirect จึงต้องหยิบผลมาเอง
+      final user = _repo.currentUser;
+      if (user != null) {
+        state = AuthState(user: user);
+        _persist(user);
+        return true;
+      }
+
+      state = state.copyWith(isBusy: false);
+      return true;
+    } on Object catch (e) {
+      state = state.copyWith(isBusy: false, error: e.toString());
+      return false;
     }
   }
 

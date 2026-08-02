@@ -159,7 +159,8 @@ flutter test
 - [x] อัปโหลดรูป + กล้องหลักฐานที่บังคับถ่ายสด เลือกจากแกลเลอรีไม่ได้
 - [x] หน้าแอดมินตัดสิน dispute (Flutter Web)
 - [x] Supabase: schema + RLS + Storage ครบ · ต่อแชทและรูปแล้ว
-- [ ] ย้าย auth · ที่อยู่ · คำขอ · ออเดอร์ ไป Supabase (schema พร้อมแล้ว)
+- [x] ล็อกอินจริง: Google · Facebook · เบอร์โทร — ดู `docs/auth-setup.md`
+- [ ] ย้ายที่อยู่ · คำขอ · ออเดอร์ ไป Supabase (schema พร้อมแล้ว)
 - [x] State machine ของออเดอร์เต็มรูปแบบ
 - [x] ต่อ payment gateway (Opn Payments) — มีตัวจำลองให้เล่นได้ทันทีโดยไม่ต้องมี key
 - [ ] escrow wallet จริง (ต้องมีใบอนุญาตจาก ธปท. — ดู `docs/payment-backend.md`)

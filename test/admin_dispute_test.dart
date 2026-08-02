@@ -8,31 +8,7 @@ import 'package:hiewdee/features/auth/presentation/auth_controller.dart';
 import 'package:hiewdee/features/orders/data/order_repository.dart';
 import 'package:hiewdee/features/orders/domain/order_status.dart';
 
-/// ตัวปลอมที่คืนผู้ใช้ตามที่สั่ง ไม่หน่วงเวลา
-class _FakeAuth implements AuthRepository {
-  _FakeAuth(this.user);
-  final AppUser user;
-
-  @override
-  Future<void> requestOtp(String phone) async {}
-
-  @override
-  Future<AppUser> verifyOtp({
-    required String phone,
-    required String otp,
-  }) async =>
-      user;
-
-  @override
-  Future<AppUser> registerWithPhone({
-    required String phone,
-    required String displayName,
-  }) async =>
-      user;
-
-  @override
-  Future<void> signOut() async {}
-}
+import 'support/fake_auth_repository.dart';
 
 const _admin = AppUser(
   id: 'u_admin',
@@ -169,7 +145,7 @@ void main() {
     testWidgets('ผู้ใช้ทั่วไป → ถูกกั้น ไม่เห็นคิว', (tester) async {
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuth(_normal)),
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository(user: _normal)),
         ],
       );
       addTearDown(container.dispose);
@@ -185,7 +161,7 @@ void main() {
     testWidgets('แอดมิน → เห็นคิว และขึ้นว่าไม่มีเคสรอ', (tester) async {
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuth(_admin)),
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository(user: _admin)),
         ],
       );
       addTearDown(container.dispose);
@@ -203,7 +179,7 @@ void main() {
         (tester) async {
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(_FakeAuth(_admin)),
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository(user: _admin)),
         ],
       );
       addTearDown(container.dispose);

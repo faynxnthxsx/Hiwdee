@@ -5,40 +5,9 @@ import 'package:hiewdee/core/router/auth_gate.dart';
 import 'package:hiewdee/features/address/data/address_repository.dart';
 import 'package:hiewdee/features/address/domain/address.dart';
 import 'package:hiewdee/features/auth/data/auth_repository.dart';
-import 'package:hiewdee/features/auth/domain/app_user.dart';
 import 'package:hiewdee/features/auth/presentation/auth_controller.dart';
 
-/// ตัวปลอมแบบไม่หน่วงเวลา — ของจริงหน่วง 600ms ทุกครั้งซึ่งทำให้เทสต์ช้าและเปราะ
-class _InstantAuth implements AuthRepository {
-  @override
-  Future<void> requestOtp(String phone) async {}
-
-  @override
-  Future<AppUser> verifyOtp({
-    required String phone,
-    required String otp,
-  }) async {
-    if (otp != MockAuthRepository.demoOtp) {
-      throw const AuthFailure('รหัส OTP ไม่ถูกต้อง');
-    }
-    return AppUser(
-      id: 'u_test',
-      displayName: 'ฝ้าย',
-      phone: phone,
-      isVerified: true,
-    );
-  }
-
-  @override
-  Future<AppUser> registerWithPhone({
-    required String phone,
-    required String displayName,
-  }) async =>
-      AppUser(id: 'u_test', displayName: displayName, phone: phone);
-
-  @override
-  Future<void> signOut() async {}
-}
+import 'support/fake_auth_repository.dart';
 
 Address _address(String id) => Address(
       id: id,
@@ -80,7 +49,7 @@ void main() {
 
   setUp(() {
     container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(_InstantAuth())],
+      overrides: [authRepositoryProvider.overrideWithValue(FakeAuthRepository())],
     );
   });
   tearDown(() => container.dispose());
@@ -196,6 +165,56 @@ void main() {
 
       expect(container.read(isLoggedInProvider), isFalse);
       expect(find.text('รหัส OTP ไม่ถูกต้อง'), findsOneWidget);
+    });
+  });
+
+  group('ล็อกอินด้วย Google / Facebook', () {
+    testWidgets('sheet โชว์ปุ่มครบทั้งสองเจ้า และมีทางเลือกเบอร์โทรด้วย',
+        (tester) async {
+      await pumpHarness(
+        tester,
+        (context, ref) => ref.ensureSignedIn(context),
+      );
+
+      await tester.tap(find.text(_Harness.label));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ดำเนินการต่อด้วย Google'), findsOneWidget);
+      expect(find.text('ดำเนินการต่อด้วย Facebook'), findsOneWidget);
+      expect(find.text('หรือใช้เบอร์มือถือ'), findsOneWidget);
+    });
+
+    testWidgets('กด Google แล้วล็อกอินสำเร็จ sheet ปิดเอง', (tester) async {
+      bool? result;
+      await pumpHarness(tester, (context, ref) async {
+        result = await ref.ensureSignedIn(context);
+      });
+
+      await tester.tap(find.text(_Harness.label));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ดำเนินการต่อด้วย Google'));
+      await tester.pumpAndSettle();
+
+      expect(result, isTrue);
+      expect(container.read(isLoggedInProvider), isTrue);
+    });
+
+    testWidgets('ปุ่มโซเชียลหายไปตอนอยู่ขั้นกรอก OTP', (tester) async {
+      await pumpHarness(
+        tester,
+        (context, ref) => ref.ensureSignedIn(context),
+      );
+
+      await tester.tap(find.text(_Harness.label));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '0812345678');
+      await tester.pump();
+      await tester.tap(find.text('ขอรหัส OTP'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ดำเนินการต่อด้วย Google'), findsNothing);
+      expect(find.text('ยืนยันรหัส OTP'), findsOneWidget);
     });
   });
 
