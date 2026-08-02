@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # ตั้งใจไม่ใส่ --no-fatal-infos: โปรเจกต์นี้อยู่ที่ "No issues found!"
+      # ปล่อยให้ warning หลุดเข้ามาทีเดียวก็เอากลับยาก
+      - name: Analyze
+        run: flutter analyze
+
+      # ไม่มีขั้น `dart format --set-exit-if-changed` โดยตั้งใจ
+      # dart_style รุ่นใหม่ (tall style) จะรื้อ 41 จาก 53 ไฟล์
+      # ซึ่งทำลายการจัดตารางและคอมเมนต์ที่วางมือไว้ให้อ่านง่าย
+      - name: Test
+        run: flutter test

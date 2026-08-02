@@ -1,0 +1,100 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../data/auth_repository.dart';
+import '../domain/app_user.dart';
+
+class AuthState {
+  const AuthState({this.user, this.isBusy = false, this.error});
+
+  final AppUser? user;
+  final bool isBusy;
+  final String? error;
+
+  bool get isLoggedIn => user != null;
+
+  AuthState copyWith({
+    AppUser? user,
+    bool? isBusy,
+    String? error,
+    bool clearError = false,
+    bool clearUser = false,
+  }) {
+    return AuthState(
+      user: clearUser ? null : (user ?? this.user),
+      isBusy: isBusy ?? this.isBusy,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
+}
+
+class AuthController extends Notifier<AuthState> {
+  @override
+  AuthState build() => const AuthState();
+
+  AuthRepository get _repo => ref.read(authRepositoryProvider);
+
+  Future<bool> requestOtp(String phone) async {
+    state = state.copyWith(isBusy: true, clearError: true);
+    try {
+      await _repo.requestOtp(phone);
+      state = state.copyWith(isBusy: false);
+      return true;
+    } on Object catch (e) {
+      state = state.copyWith(isBusy: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> verifyOtp({required String phone, required String otp}) async {
+    state = state.copyWith(isBusy: true, clearError: true);
+    try {
+      final user = await _repo.verifyOtp(phone: phone, otp: otp);
+      state = AuthState(user: user);
+      return true;
+    } on Object catch (e) {
+      state = state.copyWith(isBusy: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> register({
+    required String phone,
+    required String displayName,
+  }) async {
+    state = state.copyWith(isBusy: true, clearError: true);
+    try {
+      final user = await _repo.registerWithPhone(
+        phone: phone,
+        displayName: displayName,
+      );
+      state = AuthState(user: user);
+      return true;
+    } on Object catch (e) {
+      state = state.copyWith(isBusy: false, error: e.toString());
+      return false;
+    }
+  }
+
+  /// สลับเป็นโหมดนักหิ้ว (ผู้ใช้คนเดิม ไม่ต้องสมัครใหม่)
+  void enableCarrierMode() {
+    final user = state.user;
+    if (user == null) return;
+    state = state.copyWith(user: user.copyWith(isCarrier: true));
+  }
+
+  Future<void> signOut() async {
+    await _repo.signOut();
+    state = const AuthState();
+  }
+}
+
+final authControllerProvider =
+    NotifierProvider<AuthController, AuthState>(AuthController.new);
+
+final currentUserProvider = Provider<AppUser?>(
+  (ref) => ref.watch(authControllerProvider).user,
+);
+
+final isLoggedInProvider = Provider<bool>(
+  (ref) => ref.watch(authControllerProvider).isLoggedIn,
+);
