@@ -10,6 +10,9 @@ import '../../../shared/widgets/app_badges.dart';
 import '../../../shared/widgets/auth_required_view.dart';
 import '../../auth/presentation/auth_controller.dart';
 
+/// ระยะที่การ์ดกระเป๋าเงินทับขึ้นไปบนแถบสีแบรนด์
+const _walletOverlap = 18.0;
+
 /// แท็บ "ฉัน" — guest กดเข้ามาได้ แต่เห็นปุ่มชวนล็อกอินแทนข้อมูล
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -95,34 +98,43 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, -18, 16, 0),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.line),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.account_balance_wallet_outlined,
-                    color: AppColors.brand),
-                const SizedBox(width: 10),
-                const Text('กระเป๋าเงิน',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
-                const Spacer(),
-                Text(
-                  Fmt.baht(user.walletBalance),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.brand,
+          // ดันการ์ดขึ้นไปทับแถบสีแบรนด์ให้ดูลอยอยู่บนหัว
+          //
+          // ต้องใช้ Transform ไม่ใช่ margin ติดลบ — Container ยืนยันไว้ว่า
+          // margin ต้องไม่ติดลบ (assert margin.isNonNegative) ใส่ค่าลบแล้ว
+          // แอปพังทันทีที่เปิดแท็บนี้
+          Transform.translate(
+            offset: const Offset(0, -_walletOverlap),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.account_balance_wallet_outlined,
+                      color: AppColors.brand),
+                  const SizedBox(width: 10),
+                  const Text('กระเป๋าเงิน',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text(
+                    Fmt.baht(user.walletBalance),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.brand,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          // Transform ขยับแค่ตอนวาด ที่ทางใน layout ยังอยู่ที่เดิม
+          // ระยะห่างใต้การ์ดจึงกลายเป็น _walletOverlap อยู่แล้ว ไม่ต้องเติมอีก
           _group([
             _tile(
               icon: Icons.location_on_outlined,
