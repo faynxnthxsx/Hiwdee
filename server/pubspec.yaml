@@ -1,0 +1,12 @@
+name: hiewdee_server
+description: "เซิร์ฟเวอร์เล็กๆ ที่ถือ secret key ของ Opn ไว้สร้าง charge"
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  http: ^1.6.0
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4

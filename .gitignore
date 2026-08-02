@@ -1,3 +1,8 @@
+# คีย์และค่าตั้งต้นเฉพาะเครื่อง — ห้ามเข้า git
+# ใช้ env.example.json เป็นแม่แบบ
+env.json
+.env
+
 # Miscellaneous
 *.class
 *.log

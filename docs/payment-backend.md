@@ -112,17 +112,77 @@ OPN_SECRET_KEY=skey_test_xxxxx dart run bin/server.dart
 
 </details>
 
-### 3. รันแอปโดยชี้ไปที่เซิร์ฟเวอร์
+### 3. เอา key ใส่ที่ไหน
+
+**key คนละตัวไปคนละที่ อย่าสลับกัน**
+
+| Key | ที่อยู่ | เข้า git ไหม |
+|---|---|---|
+| `pkey_test_...` | `env.json` ในโปรเจกต์ | ไม่ (gitignore แล้ว) |
+| `skey_test_...` | environment variable ของเซิร์ฟเวอร์ | ไม่ |
+
+ก๊อปแม่แบบมาแล้วใส่ค่า:
 
 ```bash
-flutter run -d chrome \
-  --dart-define=OPN_PUBLIC_KEY=pkey_test_xxxxx \
-  --dart-define=PAYMENT_API_BASE=http://localhost:8080
+cp env.example.json env.json
 ```
 
-`--dart-define` ทำให้ key ไม่เข้า git — อย่าเอาไปใส่ใน `payment_config.dart`
+```json
+{
+  "OPN_PUBLIC_KEY": "pkey_test_5xxxxxxxxxxxxxxxx",
+  "PAYMENT_API_BASE": "http://localhost:8080"
+}
+```
 
-ถ้าไม่ใส่ทั้งสองค่า แอปจะกลับไปใช้ตัวจำลองเองอัตโนมัติ (`PaymentConfig.isLive`)
+> **ห้ามใส่ `skey_` ใน `env.json`** — ทุกค่าในไฟล์นี้ถูกคอมไพล์ฝังเข้าไปในแอป
+> ใครเปิด DevTools ก็เห็น
+
+ฝั่งเซิร์ฟเวอร์ใส่ผ่าน environment แทน ไม่ต้องมีไฟล์:
+
+```bash
+OPN_SECRET_KEY=skey_test_xxxxx dart run bin/server.dart
+```
+
+### 4. รันแอป
+
+```bash
+flutter run -d chrome --dart-define-from-file=env.json
+```
+
+ไม่มี `env.json` หรือค่าว่าง → แอปกลับไปใช้ตัวจำลองเองอัตโนมัติ
+(`PaymentConfig.isLive`) ไม่พังและยังเล่นได้ครบ
+
+<details>
+<summary>ตั้งใน Android Studio / IntelliJ ให้กด Run ได้เลย</summary>
+
+**Run → Edit Configurations → Additional run args**
+
+```
+--dart-define-from-file=env.json
+```
+
+</details>
+
+<details>
+<summary>ตั้งใน VS Code</summary>
+
+`.vscode/launch.json`
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "HiewDee (ต่อ Opn)",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--dart-define-from-file=env.json"]
+    }
+  ]
+}
+```
+
+</details>
 
 ---
 
