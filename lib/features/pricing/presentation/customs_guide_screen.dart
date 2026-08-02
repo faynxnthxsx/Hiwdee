@@ -164,7 +164,12 @@ class CustomsGuideScreen extends StatelessWidget {
   Widget _tile(_GuideItem item, Color color) {
     return Theme(
       data: ThemeData(dividerColor: Colors.transparent),
-      child: ExpansionTile(
+      // ExpansionTile สร้าง ListTile ข้างในเอง จึงต้องมี Material คั่น
+      // ระหว่างมันกับการ์ดสีขาวซึ่งเป็น ColoredBox ทึบ ไม่งั้น ink splash
+      // ถูกบังและ Flutter assert ทุกครั้งที่วาดหน้านี้
+      child: Material(
+        color: Colors.transparent,
+        child: ExpansionTile(
         tilePadding: EdgeInsets.zero,
         childrenPadding: const EdgeInsets.only(bottom: 12),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -209,6 +214,7 @@ class CustomsGuideScreen extends StatelessWidget {
             ),
           ],
         ],
+        ),
       ),
     );
   }
