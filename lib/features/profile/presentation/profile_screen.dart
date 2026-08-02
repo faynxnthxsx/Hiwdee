@@ -162,6 +162,14 @@ class ProfileScreen extends ConsumerWidget {
               subtitle: 'ประหยัดยังไงให้ถูกกฎหมาย และอะไรห้ามทำ',
               onTap: () => context.push(AppRoutes.customsGuide),
             ),
+            if (user.isAdmin)
+              _tile(
+                icon: Icons.admin_panel_settings_outlined,
+                title: 'คิวข้อพิพาท',
+                subtitle: 'ตัดสินเคสที่คู่กรณีตกลงกันไม่ได้',
+                color: AppColors.danger,
+                onTap: () => context.push(AppRoutes.admin),
+              ),
           ]),
           const SizedBox(height: 12),
           _group([

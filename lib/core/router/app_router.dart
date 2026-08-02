@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/address/domain/address.dart';
 import '../../features/address/presentation/address_form_screen.dart';
+import '../../features/admin/presentation/admin_screen.dart';
+import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/address/presentation/address_list_screen.dart';
 import '../../features/carrier/presentation/carrier_onboard_screen.dart';
 import '../../features/home/presentation/home_shell.dart';
@@ -77,6 +79,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.orderDetailPattern,
         builder: (_, state) =>
             OrderDetailScreen(orderId: state.pathParameters['id']!),
+      ),
+
+      GoRoute(
+        path: AppRoutes.chatPattern,
+        builder: (_, state) =>
+            ChatScreen(orderId: state.pathParameters['orderId']!),
+      ),
+
+      GoRoute(
+        path: AppRoutes.admin,
+        builder: (_, _) => const AdminScreen(),
       ),
 
       GoRoute(

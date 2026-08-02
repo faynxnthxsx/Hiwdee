@@ -155,17 +155,18 @@ flutter test
 
 ## แผนต่อไป
 
-- [ ] ต่อ Supabase (Postgres + RLS + Realtime + Storage)
+- [x] แชท 1-1 ต่อออเดอร์ (Realtime) — ดู `docs/supabase-setup.md`
+- [x] อัปโหลดรูป + กล้องหลักฐานที่บังคับถ่ายสด เลือกจากแกลเลอรีไม่ได้
+- [x] หน้าแอดมินตัดสิน dispute (Flutter Web)
+- [x] Supabase: schema + RLS + Storage ครบ · ต่อแชทและรูปแล้ว
+- [ ] ย้าย auth · ที่อยู่ · คำขอ · ออเดอร์ ไป Supabase (schema พร้อมแล้ว)
 - [x] State machine ของออเดอร์เต็มรูปแบบ
 - [x] ต่อ payment gateway (Opn Payments) — มีตัวจำลองให้เล่นได้ทันทีโดยไม่ต้องมี key
 - [ ] escrow wallet จริง (ต้องมีใบอนุญาตจาก ธปท. — ดู `docs/payment-backend.md`)
-- [ ] แชท 1-1 ต่อออเดอร์ แบบ realtime
 - [x] เครื่องคำนวณภาษีนำเข้าตามเกณฑ์ศุลกากรไทย
 - [x] โมเดลการเงินที่นักหิ้วไม่ต้องสำรองจ่าย
 - [x] ระบบเสนอราคา + ออเดอร์สองฝั่ง (ผู้ฝาก / นักหิ้ว)
 - [x] เซฟเซสชันและที่อยู่ลงเครื่อง (`shared_preferences`)
-- [ ] อัปโหลดรูปสินค้า + กล้องหลักฐานที่ปลอมไม่ได้
-- [ ] หน้าแอดมินตัดสิน dispute (Flutter Web)
 - [x] CI ด้วย GitHub Actions (`flutter analyze` + `flutter test`)
 
 ---

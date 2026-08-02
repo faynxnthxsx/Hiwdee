@@ -29,6 +29,15 @@ class MockAuthRepository implements AuthRepository {
       reviewCount: 128,
       walletBalance: 2500,
     ),
+    // บัญชีแอดมินสำหรับลองหน้าตัดสินข้อพิพาท
+    // ของจริงสิทธิ์นี้ต้องมาจากเซิร์ฟเวอร์ ไม่ใช่ค่าที่ไคลเอนต์ถืออยู่
+    '0899999999': const AppUser(
+      id: 'u_admin',
+      displayName: 'เจ้าหน้าที่',
+      phone: '0899999999',
+      isVerified: true,
+      isAdmin: true,
+    ),
   };
 
   @override

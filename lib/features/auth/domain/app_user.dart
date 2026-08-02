@@ -8,6 +8,7 @@ class AppUser {
     this.avatarUrl,
     this.isCarrier = false,
     this.isVerified = false,
+    this.isAdmin = false,
     this.rating = 0,
     this.reviewCount = 0,
     this.walletBalance = 0,
@@ -19,6 +20,11 @@ class AppUser {
   final String? avatarUrl;
   final bool isCarrier;
   final bool isVerified;
+
+  /// เข้าหน้าตัดสินข้อพิพาทได้ — ของจริงต้องมาจากสิทธิ์ฝั่งเซิร์ฟเวอร์
+  /// ไม่ใช่ค่าที่ไคลเอนต์ถืออยู่แบบนี้
+  final bool isAdmin;
+
   final double rating;
   final int reviewCount;
   final double walletBalance;
@@ -32,6 +38,7 @@ class AppUser {
         'avatarUrl': avatarUrl,
         'isCarrier': isCarrier,
         'isVerified': isVerified,
+        'isAdmin': isAdmin,
         'rating': rating,
         'reviewCount': reviewCount,
         'walletBalance': walletBalance,
@@ -44,6 +51,7 @@ class AppUser {
         avatarUrl: json['avatarUrl'] as String?,
         isCarrier: json['isCarrier'] as bool? ?? false,
         isVerified: json['isVerified'] as bool? ?? false,
+        isAdmin: json['isAdmin'] as bool? ?? false,
         rating: (json['rating'] as num?)?.toDouble() ?? 0,
         reviewCount: json['reviewCount'] as int? ?? 0,
         walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0,
@@ -54,6 +62,7 @@ class AppUser {
     String? avatarUrl,
     bool? isCarrier,
     bool? isVerified,
+    bool? isAdmin,
     double? rating,
     int? reviewCount,
     double? walletBalance,
@@ -65,6 +74,7 @@ class AppUser {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isCarrier: isCarrier ?? this.isCarrier,
       isVerified: isVerified ?? this.isVerified,
+      isAdmin: isAdmin ?? this.isAdmin,
       rating: rating ?? this.rating,
       reviewCount: reviewCount ?? this.reviewCount,
       walletBalance: walletBalance ?? this.walletBalance,

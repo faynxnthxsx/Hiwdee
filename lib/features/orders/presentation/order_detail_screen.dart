@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/app_badges.dart';
@@ -9,6 +11,7 @@ import '../../payments/presentation/payment_sheet.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 import '../domain/order_status.dart';
+import 'proof_upload_sheet.dart';
 
 /// รายละเอียดออเดอร์ — ไทม์ไลน์ · แผนการจ่ายเงิน · ปุ่มเดินสถานะ
 ///
@@ -35,6 +38,11 @@ class OrderDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('รายละเอียดออเดอร์'),
         actions: [
+          IconButton(
+            tooltip: 'แชทกับอีกฝ่าย',
+            onPressed: () => context.push(AppRoutes.chat(order.id)),
+            icon: const Icon(Icons.chat_bubble_outline),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Center(child: _RoleTag(role: order.myRole)),
@@ -655,6 +663,23 @@ class _ActionBar extends ConsumerWidget {
         const SnackBar(
           content: Text('ชำระเงินสำเร็จ ระบบถือเงินไว้จนกว่าคุณจะกดรับของ'),
         ),
+      );
+      return;
+    }
+
+    // ยืนยันว่าซื้อของแล้วต้องมีหลักฐานจากกล้องเสมอ ไม่ใช่กดผ่านเฉยๆ
+    if (action.to == OrderStatus.purchased) {
+      final sent = await ProofUploadSheet.show(context, order.id);
+      if (sent != true || !context.mounted) return;
+
+      ref.read(orderListProvider.notifier).advance(
+            order.id,
+            OrderStatus.purchased,
+            note: 'อัปสลิปและรูปสินค้าเข้าระบบแล้ว',
+          );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('บันทึกหลักฐานเรียบร้อย')),
       );
       return;
     }

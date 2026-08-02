@@ -12,6 +12,12 @@ abstract final class AppRoutes {
   static String orderDetail(String id) => '/orders/$id';
   static const orderDetailPattern = '/orders/:id';
 
+  static String chat(String orderId) => '/chat/$orderId';
+  static const chatPattern = '/chat/:orderId';
+
+  /// หน้าแอดมินตัดสินข้อพิพาท — ตั้งใจให้เปิดบน Flutter Web
+  static const admin = '/admin';
+
   static const tripNew = '/trips/new';
 
   static const addresses = '/addresses';

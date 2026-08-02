@@ -49,11 +49,21 @@ class OrderNotifier extends Notifier<List<Order>> {
 
   /// เดินสถานะ — ปฏิเสธเงียบๆ ถ้ากติกาไม่อนุญาต
   ///
+  /// [by] ไว้ให้หน้าแอดมินเดินในบทบาท [OrderActor.platform] ได้
+  /// ปกติใช้บทบาทของผู้ใช้บนออเดอร์นั้น ([Order.myRole])
+  ///
   /// คืน true เมื่อเดินสำเร็จ เพื่อให้ UI รู้ว่าจะโชว์ SnackBar ไหม
-  bool advance(String orderId, OrderStatus to, {String note = ''}) {
+  bool advance(
+    String orderId,
+    OrderStatus to, {
+    String note = '',
+    OrderActor? by,
+  }) {
     final order = byId(orderId);
     if (order == null) return false;
-    if (!OrderFlow.canGo(order.status, to, by: order.myRole)) return false;
+    if (!OrderFlow.canGo(order.status, to, by: by ?? order.myRole)) {
+      return false;
+    }
 
     state = [
       for (final o in state)

@@ -161,10 +161,24 @@ class RequestDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 OutlinedButton(
-                  onPressed: () => ref.ensureSignedIn(
-                    context,
-                    reason: 'เข้าสู่ระบบเพื่อแชทกับผู้ฝาก',
-                  ),
+                  // แชทผูกกับออเดอร์ ไม่ใช่ผูกกับคน จึงยังเปิดห้องไม่ได้
+                  // จนกว่าจะมีออเดอร์ — บอกให้ชัดดีกว่าเปิดห้องลอยๆ
+                  // ที่อ้างอิงไม่ได้ตอนเกิดข้อพิพาท
+                  onPressed: () async {
+                    final ok = await ref.ensureSignedIn(
+                      context,
+                      reason: 'เข้าสู่ระบบเพื่อแชทกับผู้ฝาก',
+                    );
+                    if (!ok || !context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'ห้องแชทจะเปิดให้อัตโนมัติเมื่อผู้ฝากรับข้อเสนอ '
+                          'เพื่อให้ทุกข้อความอ้างอิงกับออเดอร์ได้',
+                        ),
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 36),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
