@@ -9,6 +9,9 @@ abstract final class AppRoutes {
   static String requestDetail(String id) => '/request/$id';
   static const requestDetailPattern = '/request/:id';
 
+  static String orderDetail(String id) => '/orders/$id';
+  static const orderDetailPattern = '/orders/:id';
+
   static const tripNew = '/trips/new';
 
   static const addresses = '/addresses';

@@ -1,11 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/local_store.dart';
 import '../domain/address.dart';
 
-/// สมุดที่อยู่ของผู้ใช้ปัจจุบัน (ตอนนี้เก็บในหน่วยความจำ)
+/// สมุดที่อยู่ของผู้ใช้ปัจจุบัน
 class AddressNotifier extends Notifier<List<Address>> {
   @override
-  List<Address> build() => const [];
+  List<Address> build() {
+    final saved = _store?.readMaps(StoreKeys.addresses) ?? const [];
+    return [for (final json in saved) Address.fromJson(json)];
+  }
+
+  LocalStore? get _store => ref.read(localStoreProvider);
+
+  /// เขียนทุกครั้งที่ state เปลี่ยน — กติกาที่อยู่เริ่มต้นถูก normalize ไปแล้ว
+  /// ตอนนี้จึงเซฟตามที่เห็นได้เลย
+  void _persist() => _store?.write(
+        StoreKeys.addresses,
+        [for (final a in state) a.toJson()],
+      );
 
   Address? get defaultAddress {
     if (state.isEmpty) return null;
@@ -24,14 +37,19 @@ class AddressNotifier extends Notifier<List<Address>> {
       next.add(address);
     }
     state = _normalize(next, makeDefault: address.isDefault ? address.id : null);
+    _persist();
   }
 
   void remove(String id) {
     final next = state.where((a) => a.id != id).toList();
     state = _normalize(next);
+    _persist();
   }
 
-  void setDefault(String id) => state = _normalize(state, makeDefault: id);
+  void setDefault(String id) {
+    state = _normalize(state, makeDefault: id);
+    _persist();
+  }
 
   /// ให้มีค่าเริ่มต้นได้แค่รายการเดียวเสมอ และถ้าไม่มีเลยให้อันแรกเป็นค่าเริ่มต้น
   List<Address> _normalize(List<Address> list, {String? makeDefault}) {

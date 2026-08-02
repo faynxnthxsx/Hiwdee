@@ -7,6 +7,7 @@ import '../../features/address/presentation/address_form_screen.dart';
 import '../../features/address/presentation/address_list_screen.dart';
 import '../../features/carrier/presentation/carrier_onboard_screen.dart';
 import '../../features/home/presentation/home_shell.dart';
+import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/pricing/presentation/cost_calculator_screen.dart';
 import '../../features/pricing/presentation/customs_guide_screen.dart';
@@ -70,6 +71,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.requestDetailPattern,
         builder: (_, state) =>
             RequestDetailScreen(requestId: state.pathParameters['id']!),
+      ),
+
+      GoRoute(
+        path: AppRoutes.orderDetailPattern,
+        builder: (_, state) =>
+            OrderDetailScreen(orderId: state.pathParameters['id']!),
       ),
 
       GoRoute(

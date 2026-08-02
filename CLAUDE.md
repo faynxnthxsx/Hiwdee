@@ -44,13 +44,27 @@ Each returns a falsy/null value when the user backs out, and callers are expecte
 
 Screens are built from full-bleed white cards. Any card containing a `ListTile`/`SwitchListTile` must use `Material(color: Colors.white, …)` — a `Container(color:)` compiles to a `ColoredBox` that hides the tile's background and ink splashes, and Flutter throws a debug assertion for it on every build. `_card()` helpers in `address_form_screen.dart` and `create_request_screen.dart` already do this; `cost_calculator_screen._switchTile` wraps individual tiles in a transparent `Material` where the surrounding card stays a `Container`.
 
-Route order in `app_router.dart` matters and is annotated: `/request/new` must precede `/request/:id`, and `/calculator/guide` must precede `/calculator`.
+Route order in `app_router.dart` matters and is annotated: `/request/new` must precede `/request/:id`, and `/calculator/guide` must precede `/calculator`. `/orders/:id` sits outside the shell while `/orders` is a shell branch — that works because the branch path is exact.
 
 ### State
 
 Riverpod 3 `Notifier`/`NotifierProvider` throughout; no code generation. Repositories are in-memory mocks that seed sample data relative to `DateTime.now()` so it never looks stale (`RequestNotifier._seed`). The Supabase swap is meant to happen behind the existing repository classes without touching `presentation/`.
 
 `AuthController` holds one `AppUser` that can be both requester and carrier — `enableCarrierMode()` flips `isCarrier` on the same user rather than creating a second account.
+
+### Persistence
+
+`localStoreProvider` returns `LocalStore?` and **defaults to `null`** — tests get no persistence and need no mocking. `main()` opens `SharedPreferences` before `runApp` and overrides the provider, which keeps every `Notifier.build()` synchronous instead of forcing screens onto `AsyncValue`.
+
+Only user-owned state is written: session, addresses, self-posted requests, notification read-IDs. Seeded demo data is deliberately **not** persisted — its timestamps are generated relative to `DateTime.now()` on each launch, so saving it would freeze stale dates.
+
+### Orders and the state machine
+
+`OrderFlow._table` in `orders/domain/order_status.dart` is the whole transition rulebook — a table, not nested `if`s, so the prohibitions are readable and each cell is testable. Every edge names which `OrderActor` may take it.
+
+The rule the tests defend hardest: once `OrderStatus.carrierHasAdvance` is true, **neither party can cancel unilaterally** — the only path to `cancelled` is through `disputed`, resolved by `OrderActor.platform`. Money reaches the carrier at exactly one status (`completed`).
+
+`Order` is where `FundingPolicy` finally has a caller outside tests: `order.fundingPlan` and `order.payout` compute live from the merchant profile and carrier tier. The merchant profile comes from the carrier's own choice in `BidSheet`, not a guess — they're the only one who knows where they'll shop, and it's the single input `FundingPolicy` needs.
 
 ### Pricing & customs (`lib/features/pricing/`)
 
@@ -77,4 +91,6 @@ Invariant enforced by tests: `FundingPlan.carrierOutOfPocket == 0` in **every** 
 
 ## Tests
 
-`test/` holds 90 pure-Dart tests (no widget tests). Test names and groups are Thai, so `--plain-name` filters need Thai strings. Riverpod logic is tested with `ProviderContainer` directly. The domain layer's freedom from Flutter imports is what keeps this fast — preserve it.
+`test/` holds 124 tests. Test names and groups are Thai, so `--plain-name` filters need Thai strings. Riverpod logic is tested with `ProviderContainer` directly; the domain layer's freedom from Flutter imports is what keeps this fast — preserve it.
+
+`auth_gate_test.dart` is the only widget-test file. It drives the real `LoginSheet` through `UncontrolledProviderScope` with a hand-written `AuthRepository` that has no artificial delays (the mock's 600 ms sleeps make tests slow and flaky). Dismiss a sheet with `tester.state<NavigatorState>(find.byType(Navigator).first).pop()` rather than tapping the barrier.

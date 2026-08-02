@@ -152,13 +152,16 @@ flutter test
 ## แผนต่อไป
 
 - [ ] ต่อ Supabase (Postgres + RLS + Realtime + Storage)
-- [ ] State machine ของออเดอร์เต็มรูปแบบ + escrow wallet จริง
+- [x] State machine ของออเดอร์เต็มรูปแบบ
+- [ ] escrow wallet จริง (ตอนนี้เป็นการจำลองสถานะ)
 - [ ] แชท 1-1 ต่อออเดอร์ แบบ realtime
 - [x] เครื่องคำนวณภาษีนำเข้าตามเกณฑ์ศุลกากรไทย
 - [x] โมเดลการเงินที่นักหิ้วไม่ต้องสำรองจ่าย
+- [x] ระบบเสนอราคา + ออเดอร์สองฝั่ง (ผู้ฝาก / นักหิ้ว)
+- [x] เซฟเซสชันและที่อยู่ลงเครื่อง (`shared_preferences`)
 - [ ] อัปโหลดรูปสินค้า + กล้องหลักฐานที่ปลอมไม่ได้
-- [ ] ระบบ dispute + หน้าแอดมิน (Flutter Web)
-- [ ] CI ด้วย GitHub Actions (`flutter analyze` + `flutter test`)
+- [ ] หน้าแอดมินตัดสิน dispute (Flutter Web)
+- [x] CI ด้วย GitHub Actions (`flutter analyze` + `flutter test`)
 
 ---
 

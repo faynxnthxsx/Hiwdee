@@ -78,4 +78,42 @@ class HaulRequest {
 
   double get totalOffer => budgetMax + serviceFeeOffer;
   bool get isUrgent => deadline.difference(DateTime.now()).inDays <= 3;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'category': category.name,
+        'originType': originType.name,
+        'originName': originName,
+        'quantity': quantity,
+        'budgetMax': budgetMax,
+        'serviceFeeOffer': serviceFeeOffer,
+        'deadline': deadline.toIso8601String(),
+        'requesterName': requesterName,
+        'createdAt': createdAt.toIso8601String(),
+        'productUrl': productUrl,
+        'note': note,
+        'bidCount': bidCount,
+        'status': status.name,
+      };
+
+  factory HaulRequest.fromJson(Map<String, dynamic> json) => HaulRequest(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        category: HaulCategory.values.byName(json['category'] as String),
+        originType: OriginType.values.byName(json['originType'] as String),
+        originName: json['originName'] as String,
+        quantity: json['quantity'] as int,
+        budgetMax: (json['budgetMax'] as num).toDouble(),
+        serviceFeeOffer: (json['serviceFeeOffer'] as num).toDouble(),
+        deadline: DateTime.parse(json['deadline'] as String),
+        requesterName: json['requesterName'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        productUrl: json['productUrl'] as String?,
+        note: json['note'] as String? ?? '',
+        bidCount: json['bidCount'] as int? ?? 0,
+        status: RequestStatus.values.byName(
+          json['status'] as String? ?? RequestStatus.open.name,
+        ),
+      );
 }

@@ -5,6 +5,9 @@ import '../../../core/router/auth_gate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/app_badges.dart';
+import '../../orders/data/bid_repository.dart';
+import '../../orders/presentation/bid_list_section.dart';
+import '../../orders/presentation/bid_sheet.dart';
 import '../data/request_repository.dart';
 import '../domain/haul_request.dart';
 
@@ -172,6 +175,8 @@ class RequestDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
+          BidListSection(request: request),
+          const SizedBox(height: 10),
           const _EscrowNotice(),
         ],
       ),
@@ -252,6 +257,9 @@ class _BidBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final alreadyBid =
+        ref.watch(bidsForRequestProvider(request.id)).any((b) => b.isMine);
+
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Row(
@@ -279,8 +287,10 @@ class _BidBar extends ConsumerWidget {
           SizedBox(
             width: 200,
             child: FilledButton(
-              onPressed: () => _bid(context, ref),
-              child: const Text('เสนอราคารับหิ้ว'),
+              onPressed: alreadyBid ? null : () => _bid(context, ref),
+              child: Text(
+                alreadyBid ? 'เสนอราคาไปแล้ว' : 'เสนอราคารับหิ้ว',
+              ),
             ),
           ),
         ],
@@ -296,6 +306,10 @@ class _BidBar extends ConsumerWidget {
     );
     if (!ok || !context.mounted) return;
 
+    final sent = await BidSheet.show(context, request);
+    if (sent != true || !context.mounted) return;
+
+    // ตัวเลขบนการ์ดฟีดยังอ่านจาก bidCount อยู่ ขยับให้ตรงกัน
     ref.read(requestListProvider.notifier).incrementBid(request.id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('ส่งข้อเสนอเรียบร้อย รอผู้ฝากตอบกลับ')),

@@ -1,23 +1,51 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/local_store.dart';
 import '../domain/app_notification.dart';
 
 /// กล่องแจ้งเตือน — ตอนนี้เป็นข้อมูลตัวอย่างในหน่วยความจำ
 /// เวลาคำนวณจาก "ตอนนี้" เสมอ ข้อมูลตัวอย่างจะได้ไม่ดูเก่า
 /// (แบบเดียวกับ RequestNotifier — ของจริงจะมาจาก Realtime ของ Supabase)
 class NotificationNotifier extends Notifier<List<AppNotification>> {
+  /// เก็บแค่ "อ่านอันไหนไปแล้ว" ไม่ต้องเก็บตัวแจ้งเตือนทั้งก้อน
+  /// เพราะเนื้อหาเป็นข้อมูลตัวอย่างที่สร้างใหม่ทุกครั้งอยู่แล้ว
   @override
-  List<AppNotification> build() => _seed();
+  List<AppNotification> build() {
+    final read = (_store?.readStrings(StoreKeys.readNotifications) ?? const [])
+        .toSet();
+    if (read.isEmpty) return _seed();
+
+    return [
+      for (final n in _seed())
+        read.contains(n.id) ? n.copyWith(isRead: true) : n,
+    ];
+  }
+
+  LocalStore? get _store => ref.read(localStoreProvider);
+
+  void _persist() => _store?.writeStrings(
+        StoreKeys.readNotifications,
+        [
+          for (final n in state)
+            if (n.isRead) n.id,
+        ],
+      );
 
   void add(AppNotification n) => state = [n, ...state];
 
-  void markRead(String id) => state = [
-        for (final n in state) n.id == id ? n.copyWith(isRead: true) : n,
-      ];
+  void markRead(String id) {
+    state = [
+      for (final n in state) n.id == id ? n.copyWith(isRead: true) : n,
+    ];
+    _persist();
+  }
 
-  void markAllRead() => state = [
-        for (final n in state) n.copyWith(isRead: true),
-      ];
+  void markAllRead() {
+    state = [
+      for (final n in state) n.copyWith(isRead: true),
+    ];
+    _persist();
+  }
 
   static List<AppNotification> _seed() {
     final now = DateTime.now();

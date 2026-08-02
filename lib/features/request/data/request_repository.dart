@@ -1,14 +1,40 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/local_store.dart';
 import '../domain/haul_request.dart';
 
-/// คลังคำขอฝากหิ้ว — ตอนนี้เป็นข้อมูลตัวอย่างในหน่วยความจำ
-/// วันที่คำนวณจาก "ตอนนี้" เสมอ ข้อมูลตัวอย่างจะได้ไม่ดูเก่า
+/// คลังคำขอฝากหิ้ว
+///
+/// ข้อมูลตัวอย่างคิดวันที่จาก "ตอนนี้" เสมอ จะได้ไม่ดูเก่า — จึง **ไม่เซฟ**
+/// ลงเครื่อง ไม่งั้นเวลาที่ตรึงไว้จะค้างและขัดกับเจตนาเดิม
+/// ส่วนคำขอที่ผู้ใช้โพสต์เองเป็นของจริง เก็บไว้แล้วเอากลับมาต่อท้ายตอนเปิดแอป
 class RequestNotifier extends Notifier<List<HaulRequest>> {
   @override
-  List<HaulRequest> build() => _seed();
+  List<HaulRequest> build() {
+    final saved = _store?.readMaps(StoreKeys.myRequests) ?? const [];
+    final mine = [for (final json in saved) HaulRequest.fromJson(json)];
+    _mineIds = {for (final r in mine) r.id};
+    return [...mine, ..._seed()];
+  }
 
-  void add(HaulRequest request) => state = [request, ...state];
+  /// id ของคำขอที่ผู้ใช้โพสต์เอง — ตัวแยกว่าอันไหนต้องเซฟ
+  Set<String> _mineIds = const {};
+
+  LocalStore? get _store => ref.read(localStoreProvider);
+
+  void _persist() => _store?.write(
+        StoreKeys.myRequests,
+        [
+          for (final r in state)
+            if (_mineIds.contains(r.id)) r.toJson(),
+        ],
+      );
+
+  void add(HaulRequest request) {
+    _mineIds = {..._mineIds, request.id};
+    state = [request, ...state];
+    _persist();
+  }
 
   HaulRequest? byId(String id) {
     for (final r in state) {
@@ -41,6 +67,7 @@ class RequestNotifier extends Notifier<List<HaulRequest>> {
         else
           r,
     ];
+    _persist();
   }
 
   static List<HaulRequest> _seed() {

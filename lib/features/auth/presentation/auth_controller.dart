@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/local_store.dart';
 import '../data/auth_repository.dart';
 import '../domain/app_user.dart';
 
@@ -28,10 +29,26 @@ class AuthState {
 }
 
 class AuthController extends Notifier<AuthState> {
+  /// กู้เซสชันเดิมกลับมา — รีเฟรชหน้าเว็บแล้วไม่หลุดล็อกอิน
   @override
-  AuthState build() => const AuthState();
+  AuthState build() {
+    final saved = _store?.readMap(StoreKeys.user);
+    if (saved == null) return const AuthState();
+    return AuthState(user: AppUser.fromJson(saved));
+  }
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
+  LocalStore? get _store => ref.read(localStoreProvider);
+
+  void _persist(AppUser? user) {
+    final store = _store;
+    if (store == null) return;
+    if (user == null) {
+      store.remove(StoreKeys.user);
+    } else {
+      store.write(StoreKeys.user, user.toJson());
+    }
+  }
 
   Future<bool> requestOtp(String phone) async {
     state = state.copyWith(isBusy: true, clearError: true);
@@ -50,6 +67,7 @@ class AuthController extends Notifier<AuthState> {
     try {
       final user = await _repo.verifyOtp(phone: phone, otp: otp);
       state = AuthState(user: user);
+      _persist(user);
       return true;
     } on Object catch (e) {
       state = state.copyWith(isBusy: false, error: e.toString());
@@ -68,6 +86,7 @@ class AuthController extends Notifier<AuthState> {
         displayName: displayName,
       );
       state = AuthState(user: user);
+      _persist(user);
       return true;
     } on Object catch (e) {
       state = state.copyWith(isBusy: false, error: e.toString());
@@ -79,12 +98,15 @@ class AuthController extends Notifier<AuthState> {
   void enableCarrierMode() {
     final user = state.user;
     if (user == null) return;
-    state = state.copyWith(user: user.copyWith(isCarrier: true));
+    final next = user.copyWith(isCarrier: true);
+    state = state.copyWith(user: next);
+    _persist(next);
   }
 
   Future<void> signOut() async {
     await _repo.signOut();
     state = const AuthState();
+    _persist(null);
   }
 }
 

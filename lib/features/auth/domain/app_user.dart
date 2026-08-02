@@ -25,6 +25,30 @@ class AppUser {
 
   bool get hasReviews => reviewCount > 0;
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'displayName': displayName,
+        'phone': phone,
+        'avatarUrl': avatarUrl,
+        'isCarrier': isCarrier,
+        'isVerified': isVerified,
+        'rating': rating,
+        'reviewCount': reviewCount,
+        'walletBalance': walletBalance,
+      };
+
+  factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
+        id: json['id'] as String,
+        displayName: json['displayName'] as String,
+        phone: json['phone'] as String,
+        avatarUrl: json['avatarUrl'] as String?,
+        isCarrier: json['isCarrier'] as bool? ?? false,
+        isVerified: json['isVerified'] as bool? ?? false,
+        rating: (json['rating'] as num?)?.toDouble() ?? 0,
+        reviewCount: json['reviewCount'] as int? ?? 0,
+        walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0,
+      );
+
   AppUser copyWith({
     String? displayName,
     String? avatarUrl,

@@ -46,6 +46,42 @@ class Address {
   String get areaLine =>
       '$subdistrictName, $districtName, $provinceName, $postalCode';
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'receiverName': receiverName,
+        'phone': phone,
+        'provinceCode': provinceCode,
+        'provinceName': provinceName,
+        'districtCode': districtCode,
+        'districtName': districtName,
+        'subdistrictCode': subdistrictCode,
+        'subdistrictName': subdistrictName,
+        'postalCode': postalCode,
+        'line1': line1,
+        'note': note,
+        'label': label.name,
+        'isDefault': isDefault,
+      };
+
+  factory Address.fromJson(Map<String, dynamic> json) => Address(
+        id: json['id'] as String,
+        receiverName: json['receiverName'] as String,
+        phone: json['phone'] as String,
+        provinceCode: json['provinceCode'] as int,
+        provinceName: json['provinceName'] as String,
+        districtCode: json['districtCode'] as int,
+        districtName: json['districtName'] as String,
+        subdistrictCode: json['subdistrictCode'] as int,
+        subdistrictName: json['subdistrictName'] as String,
+        postalCode: json['postalCode'] as int,
+        line1: json['line1'] as String,
+        note: json['note'] as String? ?? '',
+        label: AddressLabel.values.byName(
+          json['label'] as String? ?? AddressLabel.home.name,
+        ),
+        isDefault: json['isDefault'] as bool? ?? false,
+      );
+
   Address copyWith({
     String? receiverName,
     String? phone,
