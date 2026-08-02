@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/app_badges.dart';
 import '../../payments/domain/funding_policy.dart';
+import '../../payments/presentation/payment_sheet.dart';
 import '../data/order_repository.dart';
 import '../domain/order.dart';
 import '../domain/order_status.dart';
@@ -635,6 +636,29 @@ class _ActionBar extends ConsumerWidget {
     WidgetRef ref,
     OrderTransition action,
   ) async {
+    // จ่ายเงินจริงก่อน แล้วค่อยเดินสถานะ — ถ้าจ่ายไม่ผ่านต้องไม่ขยับ
+    if (action.to == OrderStatus.funded) {
+      final paid = await PaymentSheet.show(
+        context,
+        orderId: order.id,
+        amountTHB: order.requesterTotalTHB,
+      );
+      if (paid != true || !context.mounted) return;
+
+      ref.read(orderListProvider.notifier).advance(
+            order.id,
+            OrderStatus.funded,
+            note: 'ชำระ ${Fmt.baht(order.requesterTotalTHB)} เข้าระบบแล้ว',
+          );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ชำระเงินสำเร็จ ระบบถือเงินไว้จนกว่าคุณจะกดรับของ'),
+        ),
+      );
+      return;
+    }
+
     if (action.isDestructive) {
       final ok = await showDialog<bool>(
         context: context,

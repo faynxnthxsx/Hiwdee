@@ -58,6 +58,16 @@ Riverpod 3 `Notifier`/`NotifierProvider` throughout; no code generation. Reposit
 
 Only user-owned state is written: session, addresses, self-posted requests, notification read-IDs. Seeded demo data is deliberately **not** persisted — its timestamps are generated relative to `DateTime.now()` on each launch, so saving it would freeze stale dates.
 
+### Payments
+
+`paymentGatewayProvider` picks `MockPaymentGateway` unless **both** `OPN_PUBLIC_KEY` and `PAYMENT_API_BASE` are supplied via `--dart-define` (`PaymentConfig.isLive`). The app therefore runs end-to-end with no keys, and going live changes no UI code.
+
+**Never put the Opn secret key in this repo or in `--dart-define`.** The public key tokenizes cards directly against `vault.omise.co` (so card numbers never touch our server); creating the charge needs the secret key and must happen on a backend — see `docs/payment-backend.md`.
+
+Opn denominates in **satang**, not baht. `toSatang()`/`fromSatang()` in `payments/domain/payment_gateway.dart` are the only places that conversion should happen; passing baht straight through undercharges by 100×.
+
+The `awaitingPayment → funded` transition is the one action in `order_detail_screen._run` that does not advance directly — it opens `PaymentSheet` first and only advances on success.
+
 ### Orders and the state machine
 
 `OrderFlow._table` in `orders/domain/order_status.dart` is the whole transition rulebook — a table, not nested `if`s, so the prohibitions are readable and each cell is testable. Every edge names which `OrderActor` may take it.
